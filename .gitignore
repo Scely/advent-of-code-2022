@@ -1,0 +1,5 @@
+.vscode
+venv
+
+cookie.txt
+**/input.txt
