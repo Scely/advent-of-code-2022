@@ -62,34 +62,37 @@ def get_points(move: Shifumi, round_state: RoundState) -> int:
     return move.value + round_state.value
 
 
-def part_one() -> int:
-    """https://adventofcode.com/2022/day/2"""
+def game(process: callable) -> int:
     with open(INPUT_FILE) as f:
         personal_score = 0
         for line in f.read().splitlines():
-            opp, cur = line.split(" ")
-
-            opponent_move = input_to_shifumi[opp]
-            current_move = input_to_shifumi[cur]
-            expected_state = get_round_state_from_moves(opponent_move, current_move)
-
-            personal_score += get_points(current_move, expected_state)
+            a, b = line.split(" ")
+            personal_score += get_points(*process(a, b))
     return personal_score
+
+
+def part_one() -> int:
+    """https://adventofcode.com/2022/day/2"""
+
+    def process(a, b):
+        opponent_move = input_to_shifumi[a]
+        current_move = input_to_shifumi[b]
+        expected_state = get_round_state_from_moves(opponent_move, current_move)
+        return current_move, expected_state
+
+    return game(process)
 
 
 def part_two():
     """https://adventofcode.com/2022/day/2#part2"""
-    with open(INPUT_FILE) as f:
-        personal_score = 0
-        for line in f.read().splitlines():
-            opp, sta = line.split(" ")
 
-            opponent_move = input_to_shifumi[opp]
-            expected_state = input_to_state[sta]
-            current_move = get_move_from_state(opponent_move, expected_state)
+    def process(a, b):
+        opponent_move = input_to_shifumi[a]
+        expected_state = input_to_state[b]
+        current_move = get_move_from_state(opponent_move, expected_state)
+        return current_move, expected_state
 
-            personal_score += get_points(current_move, expected_state)
-    return personal_score
+    return game(process)
 
 
 if __name__ == "__main__":
