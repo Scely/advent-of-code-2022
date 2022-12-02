@@ -43,10 +43,10 @@ loser = {v: k for k, v in winner.items()}
 def get_round_state_from_moves(
     opponent_move: Shifumi, current_move: Shifumi
 ) -> RoundState:
-    if opponent_move is winner[current_move]:
-        return RoundState.LOSE
-    elif opponent_move is loser[current_move]:
+    if current_move is winner[opponent_move]:
         return RoundState.WIN
+    elif current_move is loser[opponent_move]:
+        return RoundState.LOSE
     return RoundState.DRAW
 
 
