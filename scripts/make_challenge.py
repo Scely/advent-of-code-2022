@@ -16,6 +16,8 @@ class GenerateChallenge:
     def __post_init__(self) -> None:
         if self.day < 1 or self.day > 25:
             raise ValueError("Invalid day: input must be between 1 and 25")
+        if self.year < 2015:
+            raise ValueError("Invalid year: challenges started in 2015")
 
     @classmethod
     def from_cli(cls) -> "GenerateChallenge":
