@@ -31,30 +31,32 @@ input_to_state = {
     "Z": RoundState.WIN,
 }
 
-make_win = {
+winner = {
     Shifumi.ROCK: Shifumi.PAPER,
     Shifumi.PAPER: Shifumi.SCISSORS,
     Shifumi.SCISSORS: Shifumi.ROCK,
 }
 
-make_lose = {v: k for k, v in make_win.items()}
+loser = {v: k for k, v in winner.items()}
 
 
 def get_round_state_from_moves(
     opponent_move: Shifumi, current_move: Shifumi
 ) -> RoundState:
-    if opponent_move is make_win[current_move]:
+    if opponent_move is winner[current_move]:
         return RoundState.LOSE
-    elif opponent_move is make_lose[current_move]:
+    elif opponent_move is loser[current_move]:
         return RoundState.WIN
     return RoundState.DRAW
 
 
-def get_move_from_state(opponent_move: Shifumi, expected_state: RoundState) -> Shifumi:
+def get_best_move_from_state(
+    opponent_move: Shifumi, expected_state: RoundState
+) -> Shifumi:
     if expected_state is RoundState.WIN:
-        return make_win[opponent_move]
+        return winner[opponent_move]
     elif expected_state is RoundState.LOSE:
-        return make_lose[opponent_move]
+        return loser[opponent_move]
     return opponent_move
 
 
@@ -62,37 +64,42 @@ def get_points(move: Shifumi, round_state: RoundState) -> int:
     return move.value + round_state.value
 
 
-def game(process: callable) -> int:
+def game(get_current_move_and_round_state: callable) -> int:
     with open(INPUT_FILE) as f:
-        personal_score = 0
+        score = 0
         for line in f.read().splitlines():
-            a, b = line.split(" ")
-            personal_score += get_points(*process(a, b))
-    return personal_score
+            input_a, input_b = line.split(" ")
+            current_move, round_state = get_current_move_and_round_state(
+                input_a, input_b
+            )
+            score += get_points(current_move, round_state)
+    return score
 
 
 def part_one() -> int:
     """https://adventofcode.com/2022/day/2"""
 
-    def process(a, b):
-        opponent_move = input_to_shifumi[a]
-        current_move = input_to_shifumi[b]
-        expected_state = get_round_state_from_moves(opponent_move, current_move)
-        return current_move, expected_state
+    def by_finding_round_state(
+        input_a: str, input_b: str
+    ) -> tuple[Shifumi, RoundState]:
+        opponent_move: Shifumi = input_to_shifumi[input_a]
+        current_move: Shifumi = input_to_shifumi[input_b]
+        round_state = get_round_state_from_moves(opponent_move, current_move)
+        return current_move, round_state
 
-    return game(process)
+    return game(by_finding_round_state)
 
 
 def part_two():
     """https://adventofcode.com/2022/day/2#part2"""
 
-    def process(a, b):
-        opponent_move = input_to_shifumi[a]
-        expected_state = input_to_state[b]
-        current_move = get_move_from_state(opponent_move, expected_state)
+    def by_finding_best_move(input_a: str, input_b: str) -> tuple[Shifumi, RoundState]:
+        opponent_move: Shifumi = input_to_shifumi[input_a]
+        expected_state: Shifumi = input_to_state[input_b]
+        current_move = get_best_move_from_state(opponent_move, expected_state)
         return current_move, expected_state
 
-    return game(process)
+    return game(by_finding_best_move)
 
 
 if __name__ == "__main__":
