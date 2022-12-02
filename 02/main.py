@@ -65,9 +65,9 @@ def get_points(move: Shifumi, round_state: RoundState) -> int:
 
 
 def game(get_current_move_and_round_state: callable) -> int:
-    with open(INPUT_FILE) as f:
-        score = 0
-        for line in f.read().splitlines():
+    score = 0
+    with open(INPUT_FILE) as file:
+        for line in file.read().splitlines():
             input_a, input_b = line.split(" ")
             current_move, round_state = get_current_move_and_round_state(
                 input_a, input_b
