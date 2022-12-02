@@ -1,7 +1,7 @@
 INPUT_FILE = "01/input.txt"
 
 
-def get_snacks() -> list:
+def get_snacks() -> list[int]:
     with open(INPUT_FILE) as f:
         acc = 0
         max_list = []
