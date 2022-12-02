@@ -90,7 +90,7 @@ def part_one() -> int:
     return game(by_finding_round_state)
 
 
-def part_two():
+def part_two() -> int:
     """https://adventofcode.com/2022/day/2#part2"""
 
     def by_finding_best_move(input_a: str, input_b: str) -> tuple[Shifumi, RoundState]:
