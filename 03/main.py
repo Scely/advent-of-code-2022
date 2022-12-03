@@ -3,7 +3,7 @@ from itertools import islice
 INPUT_FILE = "03/input.txt"
 
 
-def char_to_prioity_value(char: str) -> int:
+def char_to_priority_value(char: str) -> int:
     lower_cases = "abcdefghijklmnopqrstuvwxyz"
     upper_cases = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     if char in lower_cases:
@@ -15,7 +15,7 @@ def char_to_prioity_value(char: str) -> int:
 
 def get_points_from_common_char_in_sets(*args: set) -> int:
     common_char: str = next(iter(set.intersection(*args)))
-    return char_to_prioity_value(common_char)
+    return char_to_priority_value(common_char)
 
 
 def part_one() -> int:
@@ -35,10 +35,7 @@ def part_two() -> int:
     """https://adventofcode.com/2022/day/3#part2"""
     score = 0
     with open(INPUT_FILE) as f:
-        while True:
-            group = [set(rucksack.replace("\n", "")) for rucksack in islice(f, 3)]
-            if len(group) < 3:
-                break
+        while group := [set(rucksack.replace("\n", "")) for rucksack in islice(f, 3)]:
             score += get_points_from_common_char_in_sets(*group)
     return score
 
