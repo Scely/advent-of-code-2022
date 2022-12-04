@@ -64,42 +64,33 @@ def get_points(move: Shifumi, round_state: RoundState) -> int:
     return move.value + round_state.value
 
 
-def game(get_current_move_and_round_state: callable) -> int:
-    score = 0
+def read_input_file(input_map_a: dict, input_map_b: dict) -> list:
     with open(INPUT_FILE) as file:
         for line in file.read().splitlines():
             input_a, input_b = line.split(" ")
-            current_move, round_state = get_current_move_and_round_state(
-                input_a, input_b
-            )
-            score += get_points(current_move, round_state)
-    return score
+            yield [input_map_a[input_a], input_map_b[input_b]]
 
 
 def part_one() -> int:
     """https://adventofcode.com/2022/day/2"""
-
-    def by_finding_round_state(
-        input_a: str, input_b: str
-    ) -> tuple[Shifumi, RoundState]:
-        opponent_move: Shifumi = input_to_shifumi[input_a]
-        current_move: Shifumi = input_to_shifumi[input_b]
+    score = 0
+    for opponent_move, current_move in read_input_file(
+        input_to_shifumi, input_to_shifumi
+    ):
         round_state = get_round_state_from_moves(opponent_move, current_move)
-        return current_move, round_state
-
-    return game(by_finding_round_state)
+        score += get_points(current_move, round_state)
+    return score
 
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/2#part2"""
-
-    def by_finding_best_move(input_a: str, input_b: str) -> tuple[Shifumi, RoundState]:
-        opponent_move: Shifumi = input_to_shifumi[input_a]
-        expected_state: Shifumi = input_to_state[input_b]
+    score = 0
+    for opponent_move, expected_state in read_input_file(
+        input_to_shifumi, input_to_state
+    ):
         current_move = get_best_move_from_state(opponent_move, expected_state)
-        return current_move, expected_state
-
-    return game(by_finding_best_move)
+        score += get_points(current_move, expected_state)
+    return score
 
 
 if __name__ == "__main__":
