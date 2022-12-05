@@ -5,30 +5,23 @@ import collections
 INPUT_FILE = "05/input.txt"
 
 
-def _with_mover_9000(towers: dict[int, list[str]], rounds: list[dict[str, int]]) -> str:
-    for round in rounds:
-        for _ in range(round["move"]):
-            towers[round["to"]].append(towers[round["from"]].pop())
-    return "".join(
-        [
-            tower[-1]
-            for tower in collections.OrderedDict(sorted(towers.items())).values()
-        ]
+def with_mover_9000(towers: dict[int, list[str]], instruction: dict[str, int]) -> None:
+    for _ in range(instruction["move"]):
+        towers[instruction["to"]].append(towers[instruction["from"]].pop())
+
+
+def with_mover_9001(towers: dict[int, list[str]], instruction: dict[str, int]) -> None:
+    towers[instruction["to"]].extend(
+        towers[instruction["from"]][-instruction["move"] :]
     )
+    del towers[instruction["from"]][-instruction["move"] :]
 
 
-def _with_mover_9001():
-    pass
-
-
-def top_crates(towers: dict[int, list[str]], rounds: list[dict[str, int]]) -> str:
-    for round in rounds:
-        tmp = []
-        for _ in range(round["move"]):
-            tmp.append(towers[round["from"]].pop())
-        tmp.reverse()
-        for i in tmp:
-            towers[round["to"]].append(i)
+def top_crates(
+    towers: dict[int, list[str]], instructions: list[dict[str, int]], mover: callable
+) -> str:
+    for instruction in instructions:
+        mover(towers, instruction)
     return "".join(
         [
             tower[-1]
@@ -45,17 +38,12 @@ def read_input_file() -> tuple[dict[int, str], list]:
     with open(INPUT_FILE) as f:
         for line in f.read().splitlines():
             pass
-            res = re.findall(
-                regex_towers,
-                line,
-            )
-            if res:
+            if res := re.findall(regex_towers, line):
                 for i in range(0, len(res)):
                     elem = res[i][1]
                     if elem:
                         data[i + 1].insert(0, elem)
-            res = re.match(regex_moves, line)
-            if res:
+            elif res := re.match(regex_moves, line):
                 data[0].append({k: int(v) for k, v in res.groupdict().items()})
 
     towers = data
@@ -66,15 +54,13 @@ def read_input_file() -> tuple[dict[int, str], list]:
 def part_one() -> str:
     """https://adventofcode.com/2022/day/5"""
     towers, rounds = read_input_file()
-    top_crate = _with_mover_9000(towers, rounds)
-    return top_crate
+    return top_crates(towers, rounds, with_mover_9000)
 
 
 def part_two() -> str:
     """https://adventofcode.com/2022/day/5#part2"""
     towers, rounds = read_input_file()
-    top_crate = top_crates(towers, rounds)
-    return top_crate
+    return top_crates(towers, rounds, with_mover_9001)
 
 
 if __name__ == "__main__":
