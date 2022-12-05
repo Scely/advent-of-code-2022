@@ -32,7 +32,7 @@ def top_crates(
 
 def read_input_file() -> tuple[dict[int, str], list]:
     regex_towers = r"(\W([A-Z])\W)|(\s\s\s\s)"
-    regex_moves = r"move\s(?P<move>\d+)\sfrom\s(?P<from>\d+)\sto\s(?P<to>\d+)"
+    regex_instructions = r"move\s(?P<move>\d+)\sfrom\s(?P<from>\d+)\sto\s(?P<to>\d+)"
     data = collections.defaultdict(list)
 
     with open(INPUT_FILE) as f:
@@ -43,24 +43,24 @@ def read_input_file() -> tuple[dict[int, str], list]:
                     elem = res[i][1]
                     if elem:
                         data[i + 1].insert(0, elem)
-            elif res := re.match(regex_moves, line):
+            elif res := re.match(regex_instructions, line):
                 data[0].append({k: int(v) for k, v in res.groupdict().items()})
 
     towers = data
-    rounds = towers.pop(0)
-    return towers, rounds
+    instructions = towers.pop(0)
+    return towers, instructions
 
 
 def part_one() -> str:
     """https://adventofcode.com/2022/day/5"""
-    towers, rounds = read_input_file()
-    return top_crates(towers, rounds, with_mover_9000)
+    towers, instructions = read_input_file()
+    return top_crates(towers, instructions, with_mover_9000)
 
 
 def part_two() -> str:
     """https://adventofcode.com/2022/day/5#part2"""
-    towers, rounds = read_input_file()
-    return top_crates(towers, rounds, with_mover_9001)
+    towers, instructions = read_input_file()
+    return top_crates(towers, instructions, with_mover_9001)
 
 
 if __name__ == "__main__":
