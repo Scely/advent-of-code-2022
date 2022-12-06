@@ -1,9 +1,10 @@
 INPUT_FILE = "06/input.txt"
 
 
-def find_marker_index(buffer_size: int) -> int:
+def find_marker_index(buffer_size: int, start_at: int = 0) -> int:
     buffer = []
     with open(INPUT_FILE) as f:
+        f.seek(start_at)
         while True:
             if not (char := f.read(1)):
                 break
@@ -22,7 +23,7 @@ def part_one() -> int:
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/6#part2"""
-    return find_marker_index(14)
+    return find_marker_index(14, start_at=part_one())
 
 
 if __name__ == "__main__":
