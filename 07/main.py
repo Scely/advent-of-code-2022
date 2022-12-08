@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Union
+from typing import Any, Union
+from operator import lt as less_than, gt as greater_than
 
 
 INPUT_FILE = "07/input.txt"
@@ -16,7 +17,6 @@ class ShellWords(Enum):
 @dataclass
 class File:
     name: str
-    parent: "Directory"
     size: int = 0
 
     def get_size(self) -> int:
@@ -51,7 +51,7 @@ class Directory:
         self.children.append(Directory(name, self))
 
     def create_file(self, name: str, size: int) -> None:
-        self.children.append(File(name, self, size))
+        self.children.append(File(name, size))
 
     def __str__(self):
         return f"- {self.name} ('{ShellWords.DIRECTORY.value}, {self.get_size()})"
@@ -68,6 +68,7 @@ class Filesystem:
 
     available_space: int = 70000000
     root: Directory = None
+    current_directory: Directory = None
 
     def get_child_directory(self, name: str) -> Directory:
         for child in self.current_directory.children:
@@ -94,7 +95,7 @@ class Filesystem:
     def get_directories(self) -> list[Directory]:
         directories: list[Directory] = []
 
-        def recursive_search(node, directories: list[Directory]):
+        def recursive_search(node: Directory, directories: list[Directory]):
             if isinstance(node, Directory):
                 directories.append(node)
                 for child in node.children:
@@ -104,7 +105,7 @@ class Filesystem:
         return directories
 
     def tree(self):
-        def recursive_tree(node, level=0):
+        def recursive_tree(node: Directory | File, level=0):
             print(f"{'  ' * level}{str(node)}")
             if isinstance(node, Directory):
                 for child in node.children:
@@ -114,6 +115,13 @@ class Filesystem:
 
     def get_remaining_space(self) -> int:
         return self.available_space - self.root.get_size()
+
+    def get_directory_sizes_when_size_is_(self, operator: Any, size: int) -> list[int]:
+        return [
+            directory.get_size()
+            for directory in self.get_directories()
+            if operator(directory.get_size(), size)
+        ]
 
 
 def read_input_file_as_filesystem() -> Filesystem:
@@ -136,26 +144,16 @@ def part_one() -> int:
     """https://adventofcode.com/2022/day/7"""
     fs = read_input_file_as_filesystem()
     # fs.tree()
-    directory_maximum_size = 100000
-    directory_sizes = [
-        directory.get_size()
-        for directory in fs.get_directories()
-        if directory.get_size() < directory_maximum_size
-    ]
-    return sum(directory_sizes)
+    maximum_dir_size = 100000
+    return sum(fs.get_directory_sizes_when_size_is_(less_than, maximum_dir_size))
 
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/7#part2"""
     fs = read_input_file_as_filesystem()
     # fs.tree()
-    required_space = 30000000 - fs.get_remaining_space()
-    directory_sizes = [
-        directory.get_size()
-        for directory in fs.get_directories()
-        if directory.get_size() > required_space
-    ]
-    return min(directory_sizes)
+    minimum_dir_size = 30000000 - fs.get_remaining_space()
+    return min(fs.get_directory_sizes_when_size_is_(greater_than, minimum_dir_size))
 
 
 if __name__ == "__main__":
