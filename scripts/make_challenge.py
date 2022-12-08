@@ -4,6 +4,8 @@ from io import FileIO, TextIOWrapper
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from dataclasses import dataclass
+from markdownify import markdownify as md
+from bs4 import BeautifulSoup, ResultSet
 
 
 @dataclass
@@ -69,6 +71,24 @@ class GenerateChallenge:
         :return: Day folder."""
         return Path(self.get_day_str())
 
+    def get_readme_content(self) -> str:
+        # TODO refacto with request client
+        resp = requests.Session().get(
+            url=f"https://adventofcode.com/2022/day/{self.day}",
+            allow_redirects=True,
+        )
+        if resp.status_code == 404:
+            raise ValueError(
+                f"HTTP status code {resp.status_code}. It may be that the challenge has not been released yet."
+            )
+
+        soup = BeautifulSoup(resp.content, "html.parser")
+        article_elems: ResultSet = soup.find_all("article", class_="day-desc")
+        article_elem: BeautifulSoup = next(iter(article_elems))
+        h = md(article_elem.prettify())
+
+        return h
+
     def _make_file(
         self, file_name: str, open_mode: str, get_file_content: callable
     ) -> None:
@@ -97,10 +117,15 @@ class GenerateChallenge:
         """Create the input file."""
         self._make_file("input.txt", "wb", self.get_input_file_content)
 
+    def make_readme_file(self) -> None:
+        """Create the README file."""
+        self._make_file("README.md", "w", self.get_readme_content)
+
     def make(self) -> None:
         """Create the main file and the input file."""
         self.make_input_file()
         self.make_main_file()
+        self.make_readme_file()
 
 
 if __name__ == "__main__":

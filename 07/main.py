@@ -35,7 +35,7 @@ class File:
 class Directory:
     name: str
     parent: Union["Directory", None]
-    children: list[Union["Directory", None]] = field(default_factory=lambda: [])
+    children: list["Directory"] = field(default_factory=lambda: [])
 
     @classmethod
     def root(cls):
