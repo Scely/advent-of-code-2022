@@ -4,13 +4,7 @@ INPUT_FILE = "03/input.txt"
 
 
 def char_to_priority_value(char: str) -> int:
-    lower_cases = "abcdefghijklmnopqrstuvwxyz"
-    upper_cases = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    if char in lower_cases:
-        return lower_cases.index(char) + 1
-    elif char in upper_cases:
-        return upper_cases.index(char) + 27
-    return 0
+    return "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".index(char) + 1
 
 
 def get_points_from_common_char_in_sets(*args: set) -> int:
