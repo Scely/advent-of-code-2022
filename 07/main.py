@@ -12,6 +12,8 @@ class ShellWords(Enum):
     BANG = "$"
     DIRECTORY = "dir"
     FILE = "file"
+    ROOT = "/"
+    PARENT = ".."
 
 
 @dataclass
@@ -37,7 +39,7 @@ class Directory:
 
     @classmethod
     def root(cls):
-        root_instance = cls("/", None)
+        root_instance = cls(ShellWords.ROOT.value, None)
         cls.parent = root_instance
         return root_instance
 
@@ -77,11 +79,11 @@ class Filesystem:
         raise ValueError(f"Child directory {name} not found")
 
     def change_directory(self, path: str) -> None:
-        if path == "/":
+        if path == ShellWords.ROOT.value:
             if not self.root:
                 self.root = Directory.root()
             self.current_directory = self.root
-        elif path == "..":
+        elif path == ShellWords.PARENT.value:
             self.current_directory = self.current_directory.parent
         else:
             self.current_directory = self.get_child_directory(path)
