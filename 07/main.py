@@ -34,8 +34,8 @@ class File:
 @dataclass
 class Directory:
     name: str
-    parent: Union["Directory", None]
-    children: list["Directory"] = field(default_factory=lambda: [])
+    parent: "Directory" = None
+    children: list[Union["Directory", File]] = field(default_factory=lambda: [])
 
     @classmethod
     def root(cls):
@@ -46,14 +46,49 @@ class Directory:
     def get_size(self) -> int:
         return sum(child.get_size() for child in self.children)
 
-    def create_subdirectory(self, name: str) -> None:
+    def get_child(self, name) -> Union["Directory", File]:
         for child in self.children:
-            if isinstance(child, Directory) and child.name == name:
-                raise ValueError(f"Directory {name} already exists")
-        self.children.append(Directory(name, self))
+            if child.name == name:
+                return child
+        raise ValueError(f"Child {name} not found")
 
-    def create_file(self, name: str, size: int) -> None:
-        self.children.append(File(name, size))
+    def check_if_child_already_exists(self, name: str, inst: type) -> None:
+        for child in self.children:
+            if isinstance(child, inst) and child.name == name:
+                raise ValueError(f"{inst.__name__} {name} already exists")
+
+    def create_subdirectory(self, name: str) -> "Directory":
+        self.check_if_child_already_exists(name, Directory)
+        new_directory = Directory(name, self)
+        self.children.append(new_directory)
+        return new_directory
+
+    def create_file(self, name: str, size: int) -> File:
+        self.check_if_child_already_exists(name, File)
+        new_file = File(name, size)
+        self.children.append(new_file)
+        return new_file
+
+    def get_directories(self) -> list["Directory"]:
+        directories: list[Directory] = []
+
+        def recursive_search(node: Directory, directories: list[Directory]):
+            if isinstance(node, Directory):
+                directories.append(node)
+                for child in node.children:
+                    recursive_search(child, directories)
+
+        recursive_search(self, directories)
+        return directories
+
+    def tree(self) -> None:
+        def recursive_tree(node: Directory | File, level=0):
+            print(f"{'  ' * level}{str(node)}")
+            if isinstance(node, Directory):
+                for child in node.children:
+                    recursive_tree(child, level + 1)
+
+        recursive_tree(self)
 
     def __str__(self):
         return f"- {self.name} ('{ShellWords.DIRECTORY.value}, {self.get_size()})"
@@ -72,48 +107,34 @@ class Filesystem:
     root: Directory = None
     current_directory: Directory = None
 
-    def get_child_directory(self, name: str) -> Directory:
-        for child in self.current_directory.children:
-            if isinstance(child, Directory) and child.name == name:
-                return child
-        raise ValueError(f"Child directory {name} not found")
-
-    def change_directory(self, path: str) -> None:
+    def change_directory(self, path: str) -> "Filesystem":
         if path == ShellWords.ROOT.value:
             if not self.root:
                 self.root = Directory.root()
-            self.current_directory = self.root
+            self.to_root()
         elif path == ShellWords.PARENT.value:
             self.current_directory = self.current_directory.parent
         else:
-            self.current_directory = self.get_child_directory(path)
+            self.current_directory = self.current_directory.get_child(path)
+        return self
 
-    def create_directory(self, name: str) -> None:
+    def to_root(self) -> "Filesystem":
+        self.current_directory = self.root
+        return self
+
+    def create_directory(self, name: str) -> "Filesystem":
         self.current_directory.create_subdirectory(name)
+        return self
 
-    def create_file(self, name: str, size: int) -> None:
+    def create_file(self, name: str, size: int) -> "Filesystem":
         self.current_directory.create_file(name, size)
+        return self
 
     def get_directories(self) -> list[Directory]:
-        directories: list[Directory] = []
+        return self.current_directory.get_directories()
 
-        def recursive_search(node: Directory, directories: list[Directory]):
-            if isinstance(node, Directory):
-                directories.append(node)
-                for child in node.children:
-                    recursive_search(child, directories)
-
-        recursive_search(self.root, directories)
-        return directories
-
-    def tree(self):
-        def recursive_tree(node: Directory | File, level=0):
-            print(f"{'  ' * level}{str(node)}")
-            if isinstance(node, Directory):
-                for child in node.children:
-                    recursive_tree(child, level + 1)
-
-        recursive_tree(self.root)
+    def tree(self) -> None:
+        self.current_directory.tree()
 
     def get_remaining_space(self) -> int:
         return self.available_space - self.root.get_size()
@@ -139,7 +160,7 @@ def read_input_file_as_filesystem() -> Filesystem:
                     fs.create_directory(exp[1])
                 else:
                     fs.create_file(exp[1], size=int(exp[0]))
-    return fs
+    return fs.to_root()
 
 
 def part_one() -> int:
