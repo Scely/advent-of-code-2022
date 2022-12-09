@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Union
 
 
 INPUT_FILE = "09/input.txt"
@@ -11,20 +10,54 @@ class Coordinates:
     y: int
 
     @classmethod
-    def to_the_left_of(cls, original_cell: "Coordinates"):
-        return cls(x=original_cell.x - 1, y=original_cell.y)
+    def to_the_left_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x - 1, y=other.y)
 
     @classmethod
-    def at_the_top_of(cls, original_cell: "Coordinates"):
-        return cls(x=original_cell.x, y=original_cell.y - 1)
+    def at_the_top_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x, y=other.y - 1)
 
     @classmethod
-    def to_the_right_of(cls, original_cell: "Coordinates"):
-        return cls(x=original_cell.x + 1, y=original_cell.y)
+    def to_the_right_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x + 1, y=other.y)
 
     @classmethod
-    def at_the_bottom_of(cls, original_cell: "Coordinates"):
-        return cls(x=original_cell.x, y=original_cell.y + 1)
+    def at_the_bottom_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x, y=other.y + 1)
+
+    @classmethod
+    def at_the_top_left_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x - 1, y=other.y - 1)
+
+    @classmethod
+    def at_the_top_right_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x + 1, y=other.y - 1)
+
+    @classmethod
+    def at_the_bottom_left_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x - 1, y=other.y + 1)
+
+    @classmethod
+    def at_the_bottom_right_of(cls, other: "Coordinates") -> "Coordinates":
+        return cls(x=other.x + 1, y=other.y + 1)
+
+    def is_verticaly_aligned(self, other: "Coordinates") -> bool:
+        return self.x == other.x
+
+    def is_horizontaly_aligned(self, other: "Coordinates") -> bool:
+        return self.y == other.y
+
+    def is_on_the_left_of(self, other: "Coordinates") -> bool:
+        return self.x < other.x
+
+    def is_at_the_top_of(self, other: "Coordinates") -> bool:
+        return self.y < other.y
+
+    def is_on_the_right_of(self, other: "Coordinates") -> bool:
+        return self.x > other.x
+
+    def is_at_the_bottom_of(self, other: "Coordinates") -> bool:
+        return self.y > other.y
 
     def __str__(self) -> str:
         return f"[{self.x};{self.y}]"
@@ -41,7 +74,6 @@ class Knot:
     coordinates: Coordinates = field(default_factory=lambda: Coordinates(0, 0))
     head: "Knot" = None
     tail: "Knot" = None
-    previous_coordinates: Coordinates = field(default_factory=lambda: Coordinates(0, 0))
     coordinates_history: set = field(default_factory=lambda: set())
     id = 0
 
@@ -52,7 +84,7 @@ class Knot:
         return f"({self.id}: {self.coordinates})"
 
     def __repr__(self) -> str:
-        return f"{self.id}: {self.coordinates} {self.previous_coordinates}"
+        return f"{self.id}: {self.coordinates}"
 
     def make_rope(self, knots_number: int):
         knot = self
@@ -62,8 +94,7 @@ class Knot:
         return self
 
     def make_tail(self) -> "Knot":
-        self.tail = Knot()
-        self.tail.head = self
+        self.tail = Knot(head=self)
         return self.tail
 
     def get_tail(self) -> "Knot":
@@ -96,7 +127,6 @@ class Knot:
         )
 
     def move(self, direction: str):
-        self.previous_coordinates = self.coordinates
         if direction == "U":
             self.coordinates = Coordinates.at_the_top_of(self.coordinates)
         elif direction == "D":
@@ -110,59 +140,48 @@ class Knot:
 
     def follow_head(self):
         if self.get_distance_to_head() > 1:
-            self.previous_coordinates = self.coordinates
-            # head is aligned with the tail
-            if self.head.coordinates.x == self.coordinates.x:
-                if self.head.coordinates.y > self.coordinates.y:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x, y=self.coordinates.y + 1
-                    )
+            head_coords = self.head.coordinates
+            self_coords = self.coordinates
+            if head_coords.is_verticaly_aligned(self_coords):
+                if head_coords.is_at_the_bottom_of(self_coords):
+                    self.coordinates = Coordinates.at_the_bottom_of(self.coordinates)
                 else:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x, y=self.coordinates.y - 1
-                    )
-            elif self.head.coordinates.y == self.coordinates.y:
-                if self.head.coordinates.x > self.coordinates.x:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x + 1, y=self.coordinates.y
-                    )
+                    self.coordinates = Coordinates.at_the_top_of(self.coordinates)
+            elif head_coords.is_horizontaly_aligned(self_coords):
+                if head_coords.is_on_the_right_of(self_coords):
+                    self.coordinates = Coordinates.to_the_right_of(self.coordinates)
                 else:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x - 1, y=self.coordinates.y
-                    )
+                    self.coordinates = Coordinates.to_the_left_of(self.coordinates)
             else:
                 # Head and tail are not aligned
                 diff_x = self.head.coordinates.x - self.coordinates.x
                 diff_y = self.head.coordinates.y - self.coordinates.y
                 if diff_x < 0 and diff_y < 0:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x - 1, y=self.coordinates.y - 1
-                    )
+                    self.coordinates = Coordinates.at_the_top_left_of(self.coordinates)
                 elif diff_x < 0 and diff_y > 0:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x - 1, y=self.coordinates.y + 1
+                    self.coordinates = Coordinates.at_the_bottom_left_of(
+                        self.coordinates
                     )
                 elif diff_x > 0 and diff_y < 0:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x + 1, y=self.coordinates.y - 1
-                    )
+                    self.coordinates = Coordinates.at_the_top_right_of(self.coordinates)
                 elif diff_x > 0 and diff_y > 0:
-                    self.coordinates = Coordinates(
-                        x=self.coordinates.x + 1, y=self.coordinates.y + 1
+                    self.coordinates = Coordinates.at_the_bottom_right_of(
+                        self.coordinates
                     )
+        if self.tail is None:
             self.coordinates_history.add(self.coordinates)
         if self.tail is not None:
             self.tail.follow_head()
 
 
-def print_grid(history_positions: set):
-    min_x = min([position.x for position in history_positions])
-    max_x = max([position.x for position in history_positions])
-    min_y = min([position.y for position in history_positions])
-    max_y = max([position.y for position in history_positions])
+def print_grid(coordinates_history: set[Coordinates]):
+    all_x_coordinates = [coordinates.x for coordinates in coordinates_history]
+    all_y_coordinates = [coordinates.y for coordinates in coordinates_history]
+    min_x, max_x = min(all_x_coordinates), max(all_x_coordinates)
+    min_y, max_y = min(all_y_coordinates), max(all_y_coordinates)
     for y in range(min_y, max_y + 1):
         for x in range(min_x, max_x + 1):
-            if Coordinates(x, y) in history_positions:
+            if Coordinates(x, y) in coordinates_history:
                 print("#", end="")
             else:
                 print(".", end="")
@@ -180,9 +199,9 @@ def read_input_file():
 def part_one() -> int:
     """https://adventofcode.com/2022/day/9"""
     head = Knot().make_rope(1)
-    tail = head.get_tail()
     for direction in read_input_file():
         head.move(direction)
+    tail = head.get_tail()
     # print_grid(tail.coordinates_history)
     return len(tail.coordinates_history)
 
@@ -190,9 +209,9 @@ def part_one() -> int:
 def part_two() -> int:
     """https://adventofcode.com/2022/day/9#part2"""
     head = Knot().make_rope(9)
-    tail = head.get_tail()
     for direction in read_input_file():
         head.move(direction)
+    tail = head.get_tail()
     # print_grid(tail.coordinates_history)
     return len(tail.coordinates_history)
 
