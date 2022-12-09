@@ -72,6 +72,10 @@ class GenerateChallenge:
         return Path(self.get_day_str())
 
     def get_readme_content(self) -> str:
+        """Get the README file content from the website.
+
+        :return: README file content."""
+
         # TODO refacto with request client
         resp = requests.Session().get(
             url=f"https://adventofcode.com/2022/day/{self.day}",
@@ -85,9 +89,7 @@ class GenerateChallenge:
         soup = BeautifulSoup(resp.content, "html.parser")
         article_elems: ResultSet = soup.find_all("article", class_="day-desc")
         article_elem: BeautifulSoup = next(iter(article_elems))
-        h = md(article_elem.prettify())
-
-        return h
+        return md(article_elem.prettify())
 
     def _make_file(
         self, file_name: str, open_mode: str, get_file_content: callable
