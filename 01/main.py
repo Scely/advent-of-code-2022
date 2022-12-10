@@ -11,7 +11,7 @@ def get_snacks() -> list[int]:
             else:
                 max_list.append(acc)
                 acc = 0
-        return list(reversed(sorted(max_list)))
+        return sorted(max_list, reverse=True)
 
 
 def part_one() -> int:
