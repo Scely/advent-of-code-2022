@@ -5,9 +5,7 @@ def find_marker_index(buffer_size: int, start_at: int = 0) -> int:
     buffer = []
     with open(INPUT_FILE) as f:
         f.seek(start_at)
-        while True:
-            if not (char := f.read(1)):
-                break
+        while char := f.read(1):
             buffer.append(char)
             if len(buffer) > buffer_size:
                 buffer.pop(0)
