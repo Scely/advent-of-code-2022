@@ -30,7 +30,22 @@ class Monkey:
     def __str__(self) -> str:
         return f"-- ID {self.id} --\n  {self.inspection_score=}\n  {self.operation=}\n  {self.divisor=}\n  {self.id_true=}\n  {self.id_false=}\n  {self.current_items=}\n"
 
-    def inspect(self, with_weak_limiter: bool = True) -> int:
+    @classmethod
+    def generated_from_string(cls, string: str) -> "Monkey":
+        reg = r"Monkey (?P<id>\d+).*\n  Starting items: *(?P<current_items>(.*))\n\D*= old (?P<operation>.*)\n\D*(?P<divisor>\d+)\n\D*(?P<id_true>\d+)\n\D*(?P<id_false>\d+)"
+
+        regex_result = re.match(reg, string)
+        monkey = regex_result.groupdict()
+        monkey["current_items"] = [
+            int(item) for item in monkey["current_items"].split(", ")
+        ]
+        monkey["operation"] = monkey["operation"].split(" ")
+        monkey["divisor"] = int(monkey["divisor"])
+        monkey["id_true"] = int(monkey["id_true"])
+        monkey["id_false"] = int(monkey["id_false"])
+        return cls(**monkey)
+
+    def inspect_and_throw(self, with_weak_limiter: bool = True) -> int:
         worry_level = self.current_items.pop(0)
 
         if self.operation[1] == "old":
@@ -56,31 +71,16 @@ def mul(l: list[int]) -> int:
     return reduce(lambda x, y: x * y, l)
 
 
-def generate_monkey_from_string(string: str) -> Monkey:
-    reg = r"Monkey (?P<id>\d+).*\n  Starting items: *(?P<current_items>(.*))\n\D*= old (?P<operation>.*)\n\D*(?P<divisor>\d+)\n\D*(?P<id_true>\d+)\n\D*(?P<id_false>\d+)"
-
-    regex_result = re.match(reg, string)
-    monkey = regex_result.groupdict()
-    monkey["current_items"] = [
-        int(item) for item in monkey["current_items"].split(", ")
-    ]
-    monkey["operation"] = monkey["operation"].split(" ")
-    monkey["divisor"] = int(monkey["divisor"])
-    monkey["id_true"] = int(monkey["id_true"])
-    monkey["id_false"] = int(monkey["id_false"])
-    return Monkey(**monkey)
-
-
 def read_input_file_as_monkey() -> Iterator[Monkey]:
     acc = ""
     with open(INPUT_FILE) as f:
         for line in f.read().splitlines():
             if not line:
-                yield generate_monkey_from_string(acc)
+                yield Monkey.generated_from_string(acc)
                 acc = ""
             else:
                 acc += line + "\n"
-    yield generate_monkey_from_string(acc)
+    yield Monkey.generated_from_string(acc)
 
 
 def get_monkey_business_level(max_round: int, with_weak_limiter=True) -> int:
@@ -90,8 +90,8 @@ def get_monkey_business_level(max_round: int, with_weak_limiter=True) -> int:
         for monkey in monkeys:
             monkey: Monkey
             while monkey.current_items:
-                targeted_index, item = monkey.inspect(with_weak_limiter)
-                item = item % n
+                targeted_index, item = monkey.inspect_and_throw(with_weak_limiter)
+                item = item % n  # to improve performances
                 monkeys[targeted_index].receive(item)
     scores = sorted([monkey.inspection_score for monkey in monkeys], reverse=True)
     return mul(scores[:2])
