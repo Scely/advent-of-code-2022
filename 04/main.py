@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Iterator
 
 
 INPUT_FILE = "04/input.txt"
@@ -41,7 +42,7 @@ def is_section_overlap_with_the_other(sections_raw: list[str]) -> bool:
     return section_1.start <= section_2.end and section_2.start <= section_1.end
 
 
-def read_input_file_as_sections() -> list[str]:
+def read_input_file_as_sections() -> Iterator[list[str]]:
     with open(INPUT_FILE) as f:
         for line in f.read().splitlines():
             sections = line.split(",")

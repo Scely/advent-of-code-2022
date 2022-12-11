@@ -1,53 +1,52 @@
 import re
-import collections
+from collections import defaultdict as ddict
+from collections import OrderedDict as odict
+from typing import Iterator
 
 
 INPUT_FILE = "05/input.txt"
 
 
-def with_mover_9000(towers: dict[int, list[str]], instruction: dict[str, int]) -> None:
+def with_mover_9000(towers: ddict[int, list[str]], instruction: dict[str, int]) -> None:
     for _ in range(instruction["move"]):
-        towers[instruction["to"]].append(towers[instruction["from"]].pop())
+        crates_to_add = towers[instruction["from"]].pop()
+        tower = towers[instruction["to"]]
+        tower.append(crates_to_add)
 
 
-def with_mover_9001(towers: dict[int, list[str]], instruction: dict[str, int]) -> None:
-    towers[instruction["to"]].extend(
-        towers[instruction["from"]][-instruction["move"] :]
-    )
+def with_mover_9001(towers: ddict[int, list[str]], instruction: dict[str, int]) -> None:
+    crates_to_add = towers[instruction["from"]][-instruction["move"] :]
     del towers[instruction["from"]][-instruction["move"] :]
+    tower = towers[instruction["to"]]
+    tower.extend(crates_to_add)
 
 
 def top_crates(
-    towers: dict[int, list[str]], instructions: list[dict[str, int]], mover: callable
+    towers: ddict[int, list[str]], instructions: list[dict[str, int]], mover: callable
 ) -> str:
     for instruction in instructions:
         mover(towers, instruction)
-    return "".join(
-        [
-            tower[-1]
-            for tower in collections.OrderedDict(sorted(towers.items())).values()
-        ]
-    )
+    return "".join([tower[-1] for tower in odict(sorted(towers.items())).values()])
 
 
-def read_input_file() -> tuple[dict[int, str], list]:
+def read_input_file() -> Iterator[tuple[ddict[int, list[str]], list[dict[str, int]]]]:
     regex_towers = r"(\W([A-Z])\W)|(\s\s\s\s)"
     regex_instructions = r"move\s(?P<move>\d+)\sfrom\s(?P<from>\d+)\sto\s(?P<to>\d+)"
-    data = collections.defaultdict(list)
+
+    instructions: list[dict[str, int]] = []
+    towers: ddict[int, list[str]] = ddict(list)
 
     with open(INPUT_FILE) as f:
         for line in f.read().splitlines():
-            pass
-            if res := re.findall(regex_towers, line):
-                for i in range(0, len(res)):
-                    elem = res[i][1]
-                    if elem:
-                        data[i + 1].insert(0, elem)
-            elif res := re.match(regex_instructions, line):
-                data[0].append({k: int(v) for k, v in res.groupdict().items()})
+            if regex_result := re.findall(regex_towers, line):
+                for i in range(len(regex_result)):
+                    if crate := regex_result[i][1]:
+                        towers[i + 1].insert(0, crate)
+            elif regex_result := re.match(regex_instructions, line):
+                instructions.append(
+                    {k: int(v) for k, v in regex_result.groupdict().items()}
+                )
 
-    towers = data
-    instructions = towers.pop(0)
     return towers, instructions
 
 

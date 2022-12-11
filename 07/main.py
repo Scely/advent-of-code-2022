@@ -57,13 +57,13 @@ class Directory:
             if isinstance(child, inst) and child.name == name:
                 raise ValueError(f"{inst.__name__} {name} already exists")
 
-    def create_subdirectory(self, name: str) -> "Directory":
+    def make_subdirectory(self, name: str) -> "Directory":
         self.check_if_child_already_exists(name, Directory)
         new_directory = Directory(name, self)
         self.children.append(new_directory)
         return new_directory
 
-    def create_file(self, name: str, size: int) -> File:
+    def make_file(self, name: str, size: int) -> File:
         self.check_if_child_already_exists(name, File)
         new_file = File(name, size)
         self.children.append(new_file)
@@ -122,12 +122,12 @@ class Filesystem:
         self.current_directory = self.root
         return self
 
-    def create_directory(self, name: str) -> "Filesystem":
-        self.current_directory.create_subdirectory(name)
+    def make_directory(self, name: str) -> "Filesystem":
+        self.current_directory.make_subdirectory(name)
         return self
 
-    def create_file(self, name: str, size: int) -> "Filesystem":
-        self.current_directory.create_file(name, size)
+    def make_file(self, name: str, size: int) -> "Filesystem":
+        self.current_directory.make_file(name, size)
         return self
 
     def get_directories(self) -> list[Directory]:
@@ -157,9 +157,9 @@ def read_input_file_as_filesystem() -> Filesystem:
                     fs.change_directory(exp[2])
             else:
                 if exp[0] == ShellWords.DIRECTORY.value:
-                    fs.create_directory(exp[1])
+                    fs.make_directory(exp[1])
                 else:
-                    fs.create_file(exp[1], size=int(exp[0]))
+                    fs.make_file(exp[1], size=int(exp[0]))
     return fs.to_root()
 
 

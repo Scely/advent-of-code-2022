@@ -42,20 +42,16 @@ class Forest:
         return self
 
     def make_trees_visible_from_left(self) -> "Forest":
-        self.make_trees_horizontally_visible(from_left=True)
-        return self
+        return self.make_trees_horizontally_visible(from_left=True)
 
     def make_trees_visible_from_right(self) -> "Forest":
-        self.make_trees_horizontally_visible(from_left=False)
-        return self
+        return self.make_trees_horizontally_visible(from_left=False)
 
     def make_trees_visible_from_top(self) -> "Forest":
-        self.make_trees_vertically_visible(from_top=True)
-        return self
+        return self.make_trees_vertically_visible(from_top=True)
 
     def make_trees_visible_from_bottom(self) -> "Forest":
-        self.make_trees_vertically_visible(from_top=False)
-        return self
+        return self.make_trees_vertically_visible(from_top=False)
 
     def make_trees_visible_from_outside(self) -> "Forest":
         self.make_trees_visible_from_left()
@@ -100,7 +96,7 @@ class Forest:
                     count += 1
         return count
 
-    def make_scenic_score(self, tree: Tree) -> int:
+    def get_scenic_score(self, tree: Tree) -> int:
         score_multipliers: list[int] = []
 
         for get_adjacent_tree in [
@@ -124,7 +120,7 @@ class Forest:
         for row in self.trees:
             for tree in row:
                 if tree.visible and not self.is_tree_at_the_edge(tree):
-                    scores.append(self.make_scenic_score(tree))
+                    scores.append(self.get_scenic_score(tree))
         return max(scores)
 
 

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Iterator
 
 
 INPUT_FILE = "02/input.txt"
@@ -64,7 +65,7 @@ def get_points(move: Shifumi, round_state: RoundState) -> int:
     return move.value + round_state.value
 
 
-def read_input_file(input_map_a: dict, input_map_b: dict) -> list:
+def read_input_file(input_map_a: dict, input_map_b: dict) -> Iterator[list]:
     with open(INPUT_FILE) as file:
         for line in file.read().splitlines():
             input_a, input_b = line.split(" ")

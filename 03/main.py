@@ -1,4 +1,5 @@
 from itertools import islice
+from typing import Iterator
 
 INPUT_FILE = "03/input.txt"
 
@@ -12,7 +13,7 @@ def get_points_from_common_char_in_sets(*args: set) -> int:
     return char_to_priority_value(common_char)
 
 
-def read_input_file_as_compartments() -> list[set]:
+def read_input_file_as_compartments() -> Iterator[list[set[str]]]:
     with open(INPUT_FILE) as f:
         for rucksack in f.read().splitlines():
             compartments = (
