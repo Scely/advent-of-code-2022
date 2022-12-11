@@ -184,7 +184,7 @@ def print_grid(coordinates_history: set[Coordinates]) -> None:
         print()
 
 
-def read_input_file() -> Iterator[str]:
+def read_input_file_as_direction() -> Iterator[str]:
     with open(INPUT_FILE) as f:
         for line in f.read().splitlines():
             direction, steps = line.split()
@@ -192,26 +192,28 @@ def read_input_file() -> Iterator[str]:
                 yield direction
 
 
-def main(number_of_knots: int, print_mode: bool = False, debug_mode=False) -> int:
-    rope = Knot().make_rope(number_of_knots)
-    for direction in read_input_file():
+def get_number_of_position(
+    number_of_rope_knots: int, print_tail_trace: bool = False, debug_mode=False
+) -> int:
+    rope = Knot().make_rope(number_of_rope_knots)
+    for direction in read_input_file_as_direction():
         rope.move(direction)
         if debug_mode:
             print(rope.as_string())
     tail: Knot = rope.get_tail()
-    if print_mode:
+    if print_tail_trace:
         print_grid(tail.coordinates_history)
     return len(tail.coordinates_history)
 
 
 def part_one() -> int:
     """https://adventofcode.com/2022/day/9"""
-    return main(1, print_mode=False, debug_mode=False)
+    return get_number_of_position(number_of_rope_knots=1)
 
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/9#part2"""
-    return main(9, print_mode=False, debug_mode=False)
+    return get_number_of_position(number_of_rope_knots=9)
 
 
 if __name__ == "__main__":
