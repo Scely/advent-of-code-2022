@@ -6,6 +6,7 @@ Put your cookie inside `cookie.txt` at project root.
 ## Install
 ```
 python3 -m venv ./venv
+echo 'export PYTHONPATH="."' >> ./venv/bin/activate
 source ./venv/bin/activate
 ```
 

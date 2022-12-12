@@ -1,8 +1,9 @@
 from dataclasses import dataclass
-from functools import reduce
+from typing import Iterator
 import re
 import operator
-from typing import Iterator
+
+from tools.math import mul
 
 INPUT_FILE = "11/input.txt"
 
@@ -65,10 +66,6 @@ class Monkey:
 
     def receive(self, worry_level: int) -> None:
         self.current_items.append(worry_level)
-
-
-def mul(l: list[int]) -> int:
-    return reduce(lambda x, y: x * y, l)
 
 
 def read_input_file_as_monkey() -> Iterator[Monkey]:

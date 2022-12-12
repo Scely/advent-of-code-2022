@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from functools import reduce
-
+from tools.grid import Coordinates
+from tools.math import mul
 
 INPUT_FILE = "08/input.txt"
 
@@ -8,20 +8,22 @@ INPUT_FILE = "08/input.txt"
 @dataclass
 class Tree:
     height: int
-    x: int
-    y: int
+    coordinates: Coordinates
     visible: bool = False
 
-    def __repr__(self) -> dict[str, int | tuple[int, int]]:
-        return {"coordinates": (self.x, self.y), "height": self.height}
+    def __repr__(self):
+        return f"({self.coordinates}={self.height})"
 
     def __str__(self) -> str:
-        return f"[{self.x};{self.y}={self.height}]"
+        return self.__repr__()
 
 
 @dataclass
 class Forest:
     trees: list[list[Tree]]
+
+    def __str__(self) -> str:
+        return "\n".join(str(row) for row in self.trees)
 
     def make_trees_horizontally_visible(self, from_left: bool) -> "Forest":
         for row in self.trees:
@@ -60,32 +62,29 @@ class Forest:
         self.make_trees_visible_from_bottom()
         return self
 
-    def get_tree_on_the_right(self, tree: Tree) -> Tree | None:
-        if tree.x + 1 < len(self.trees[tree.y]):
-            return self.trees[tree.y][tree.x + 1]
+    def get_tree(self, coords: Coordinates) -> Tree | None:
+        if coords.is_valid(len(self.trees), len(self.trees[0])):
+            return self.trees[coords.y][coords.x]
         return None
+
+    def get_tree_on_the_right(self, tree: Tree) -> Tree | None:
+        return self.get_tree(Coordinates.to_the_right_of(tree.coordinates))
 
     def get_tree_on_the_left(self, tree: Tree) -> Tree | None:
-        if tree.x - 1 >= 0:
-            return self.trees[tree.y][tree.x - 1]
-        return None
+        return self.get_tree(Coordinates.to_the_left_of(tree.coordinates))
 
     def get_tree_on_the_top(self, tree: Tree) -> Tree | None:
-        if tree.y - 1 >= 0:
-            return self.trees[tree.y - 1][tree.x]
-        return None
+        return self.get_tree(Coordinates.at_the_top_of(tree.coordinates))
 
     def get_tree_on_the_bottom(self, tree: Tree) -> Tree | None:
-        if tree.y + 1 < len(self.trees):
-            return self.trees[tree.y + 1][tree.x]
-        return None
+        return self.get_tree(Coordinates.at_the_bottom_of(tree.coordinates))
 
     def is_tree_at_the_edge(self, tree: Tree) -> bool:
         return (
-            tree.x == 0
-            or tree.x == len(self.trees[tree.y]) - 1
-            or tree.y == 0
-            or tree.y == len(self.trees) - 1
+            tree.coordinates.x == 0
+            or tree.coordinates.x == len(self.trees) - 1
+            or tree.coordinates.y == 0
+            or tree.coordinates.y == len(self.trees[0]) - 1
         )
 
     def count_visible_trees(self) -> int:
@@ -113,7 +112,7 @@ class Forest:
                     break
                 selected_tree = adjacent_tree
             score_multipliers.append(score)
-        return reduce(lambda x, y: x * y, score_multipliers)
+        return mul(score_multipliers)
 
     def get_highest_scenic_score(self) -> int:
         scores: list[int] = []
@@ -128,7 +127,9 @@ def read_input_file_as_forest() -> Forest:
     trees: list[list[Tree]] = []
     with open(INPUT_FILE) as f:
         for y, line in enumerate(f.read().splitlines()):
-            trees.append([Tree(int(tree), x, y) for x, tree in enumerate(line)])
+            trees.append(
+                [Tree(int(tree), Coordinates(x, y)) for x, tree in enumerate(line)]
+            )
     return Forest(trees).make_trees_visible_from_outside()
 
 
