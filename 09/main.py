@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Iterator
-from tools.grid import Coordinates
+from aoctools.grid import Coordinates
 
 INPUT_FILE = "09/input.txt"
 

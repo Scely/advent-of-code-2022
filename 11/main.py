@@ -3,7 +3,7 @@ from typing import Iterator
 import re
 import operator
 
-from tools.math import mul
+from aoctools.math import mul
 
 INPUT_FILE = "11/input.txt"
 

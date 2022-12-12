@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from enum import Enum
-from tools.grid import Coordinates
+from aoctools.grid import Coordinates
 
 INPUT_FILE = "12/input.txt"
 

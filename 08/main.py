@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from tools.grid import Coordinates
-from tools.math import mul
+from aoctools.grid import Coordinates
+from aoctools.math import mul
 
 INPUT_FILE = "08/input.txt"
 
