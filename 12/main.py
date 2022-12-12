@@ -96,22 +96,11 @@ def read_input_file_as_start_and_end_cells() -> tuple[Cell, Cell]:
     return start_cell, end_cell
 
 
-def get_zone_with_same_height(cell: Cell) -> list[Cell]:
-    queue = [cell]
-    visited = set()
-    while queue:
-        cell = queue.pop(0)
-        cell: Cell
-        if cell in visited:
-            continue
-        visited.add(cell)
-        for neighbour in cell.higher_neighbors:
-            if neighbour.height == cell.height:
-                queue.append(neighbour)
-    return list(visited)
-
-
-def bfs(start_cell: Cell, end_cell: Cell) -> tuple[int, set[Cell]]:
+def breadth_first_search(
+    start_cell: Cell, end_cell: Cell = None
+) -> tuple[int, set[Cell]]:
+    # If end_cell is None, we want to find the zone with the same height
+    # Else, we want to find the shortest path to the end_cell
     queue = [[start_cell, 0]]
     visited = set()
     while queue:
@@ -124,27 +113,21 @@ def bfs(start_cell: Cell, end_cell: Cell) -> tuple[int, set[Cell]]:
         if cell == end_cell:
             return value, visited
         for neighbour in cell.higher_neighbors:
-            if neighbour not in visited:
+            if [neighbour.height == cell.height, neighbour not in visited][
+                bool(end_cell)
+            ]:
                 queue.append([neighbour, value + 1])
     return -1, visited
 
 
 def find_shortest_length(start_cell: Cell, end_cell: Cell) -> int:
-    queue = [[start_cell, 0]]
-    visited = set()
-    while queue:
-        cell, value = queue.pop(0)
-        cell: Cell
-        value: int
-        if cell in visited:
-            continue
-        visited.add(cell)
-        if cell == end_cell:
-            return value
-        for neighbour in cell.higher_neighbors:
-            if neighbour not in visited:
-                queue.append([neighbour, value + 1])
-    return -1
+    v, _ = breadth_first_search(start_cell, end_cell)
+    return v
+
+
+def get_zone_with_same_height(cell: Cell) -> list[Cell]:
+    _, z = breadth_first_search(cell)
+    return list(z)
 
 
 def part_one() -> int:
@@ -156,8 +139,8 @@ def part_one() -> int:
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/12#part2"""
-    start_cell, end_cell = read_input_file_as_start_and_end_cells()
-    start_cells = get_zone_with_same_height(start_cell)
+    original_cell, end_cell = read_input_file_as_start_and_end_cells()
+    start_cells = get_zone_with_same_height(original_cell)
     scores = [find_shortest_length(start_cell, end_cell) for start_cell in start_cells]
     return min(scores)
 
