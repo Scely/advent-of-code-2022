@@ -1,7 +1,13 @@
 from dataclasses import dataclass, field
+from enum import Enum
 
 
 INPUT_FILE = "12/input.txt"
+
+
+class Marker(Enum):
+    START = "S"
+    END = "E"
 
 
 @dataclass
@@ -25,52 +31,6 @@ class Coordinates:
     def at_the_bottom_of(cls, other: "Coordinates") -> "Coordinates":
         return cls(x=other.x, y=other.y + 1)
 
-    @classmethod
-    def at_the_top_left_of(cls, other: "Coordinates") -> "Coordinates":
-        return cls(x=other.x - 1, y=other.y - 1)
-
-    @classmethod
-    def at_the_top_right_of(cls, other: "Coordinates") -> "Coordinates":
-        return cls(x=other.x + 1, y=other.y - 1)
-
-    @classmethod
-    def at_the_bottom_left_of(cls, other: "Coordinates") -> "Coordinates":
-        return cls(x=other.x - 1, y=other.y + 1)
-
-    @classmethod
-    def at_the_bottom_right_of(cls, other: "Coordinates") -> "Coordinates":
-        return cls(x=other.x + 1, y=other.y + 1)
-
-    def is_verticaly_aligned(self, other: "Coordinates") -> bool:
-        return self.x == other.x
-
-    def is_horizontaly_aligned(self, other: "Coordinates") -> bool:
-        return self.y == other.y
-
-    def is_on_the_left_of(self, other: "Coordinates") -> bool:
-        return self.x < other.x
-
-    def is_at_the_top_of(self, other: "Coordinates") -> bool:
-        return self.y < other.y
-
-    def is_on_the_right_of(self, other: "Coordinates") -> bool:
-        return self.x > other.x
-
-    def is_at_the_bottom_of(self, other: "Coordinates") -> bool:
-        return self.y > other.y
-
-    def is_at_the_top_left_of(self, other: "Coordinates") -> bool:
-        return self.is_on_the_left_of(other) and self.is_at_the_top_of(other)
-
-    def is_at_the_top_right_of(self, other: "Coordinates") -> bool:
-        return self.is_on_the_right_of(other) and self.is_at_the_top_of(other)
-
-    def is_at_the_bottom_left_of(self, other: "Coordinates") -> bool:
-        return self.is_on_the_left_of(other) and self.is_at_the_bottom_of(other)
-
-    def is_at_the_bottom_right_of(self, other: "Coordinates") -> bool:
-        return self.is_on_the_right_of(other) and self.is_at_the_bottom_of(other)
-
     def __str__(self) -> str:
         return f"[{self.x};{self.y}]"
 
@@ -85,7 +45,6 @@ class Coordinates:
 class Cell:
     height: int
     coordinates: Coordinates
-    # marked: bool = False
     higher_neighbors: list["Cell"] = field(default_factory=lambda: [])
 
     def __str__(self) -> str:
@@ -96,8 +55,11 @@ class Cell:
     def __repr__(self) -> str:
         return f"{self.coordinates}: {self.height}"
 
+    def __hash__(self):
+        return hash((self.height, self.coordinates))
 
-def read_input_file():
+
+def read_input_file_as_start_and_end_cells() -> tuple[Cell, Cell]:
     matrix: list[list[Cell]] = []
     start_cell: Cell
     end_cell: Cell
@@ -107,17 +69,14 @@ def read_input_file():
             row = []
             for j, char in enumerate(line):
                 coords = Coordinates(i, j)
-                if char == "S":
-                    cell = start_cell = Cell(0, coords)
-                elif char == "E":
+                if char == Marker.START.value:
+                    cell = start_cell = Cell(1, coords)
+                elif char == Marker.END.value:
                     cell = end_cell = Cell(27, coords)
                 else:
                     cell = Cell(ord(char) - 96, coords)
                 row.append(cell)
             matrix.append(row)
-
-    def valid_coordinates(coords: Coordinates, matrix):
-        return 0 <= coords.x < len(matrix) and 0 <= coords.y < len(matrix[0])
 
     # Find neighbours
     for row in matrix:
@@ -129,35 +88,78 @@ def read_input_file():
                 Coordinates.to_the_right_of(cell.coordinates),
                 Coordinates.at_the_bottom_of(cell.coordinates),
             ]:
-                if valid_coordinates(coords, matrix):
+                if 0 <= coords.x < len(matrix) and 0 <= coords.y < len(matrix[0]):
                     target_cell = matrix[coords.x][coords.y]
-                    if target_cell.height in [cell.height, cell.height + 1]:
+                    if target_cell.height <= cell.height + 1:
                         cell.higher_neighbors.append(matrix[coords.x][coords.y])
-
-    # TODO debug
-    for row in matrix:
-        for cell in row:
-            print(cell)
 
     return start_cell, end_cell
 
 
-def find_len():
-    pass
+def get_zone_with_same_height(cell: Cell) -> list[Cell]:
+    queue = [cell]
+    visited = set()
+    while queue:
+        cell = queue.pop(0)
+        cell: Cell
+        if cell in visited:
+            continue
+        visited.add(cell)
+        for neighbour in cell.higher_neighbors:
+            if neighbour.height == cell.height:
+                queue.append(neighbour)
+    return list(visited)
+
+
+def bfs(start_cell: Cell, end_cell: Cell) -> tuple[int, set[Cell]]:
+    queue = [[start_cell, 0]]
+    visited = set()
+    while queue:
+        cell, value = queue.pop(0)
+        cell: Cell
+        value: int
+        if cell in visited:
+            continue
+        visited.add(cell)
+        if cell == end_cell:
+            return value, visited
+        for neighbour in cell.higher_neighbors:
+            if neighbour not in visited:
+                queue.append([neighbour, value + 1])
+    return -1, visited
+
+
+def find_shortest_length(start_cell: Cell, end_cell: Cell) -> int:
+    queue = [[start_cell, 0]]
+    visited = set()
+    while queue:
+        cell, value = queue.pop(0)
+        cell: Cell
+        value: int
+        if cell in visited:
+            continue
+        visited.add(cell)
+        if cell == end_cell:
+            return value
+        for neighbour in cell.higher_neighbors:
+            if neighbour not in visited:
+                queue.append([neighbour, value + 1])
+    return -1
 
 
 def part_one() -> int:
     """https://adventofcode.com/2022/day/12"""
-    score = 0
-    start_cell, end_cell = read_input_file()
-    # find_len(start_cell)
+    start_cell, end_cell = read_input_file_as_start_and_end_cells()
+    score = find_shortest_length(start_cell, end_cell)
     return score
 
 
 def part_two() -> int:
     """https://adventofcode.com/2022/day/12#part2"""
-    score = 0
-    return score
+    start_cell, end_cell = read_input_file_as_start_and_end_cells()
+    start_cells = get_zone_with_same_height(start_cell)
+    scores = [find_shortest_length(start_cell, end_cell) for start_cell in start_cells]
+    return min(scores)
 
 
 if __name__ == "__main__":
