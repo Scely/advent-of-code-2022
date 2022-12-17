@@ -50,15 +50,10 @@ def find_segments_on_y_axis(
                 res_2[start].append(end)
             else:
                 res_2[start] = [end]
-    # TODO trier non pas par ordre croissant,
-    # Mais il faut reconstruire une range cohérente
     res_2 = odict(sorted(res_2.items()))
     start_tmp = None
     end_tmp = None
     res_3 = []
-    # print("AH", res_2)
-    # print("sorted", sorted(res_2))
-    # print("sorted len", len(sorted(res_2)))
     for k, v in res_2.items():
         if not start_tmp:
             start_tmp = k
@@ -78,7 +73,6 @@ def find_segments_on_y_axis(
     for start_pivot, end_pivot in res:
         if start_pivot.x == end_pivot.x:
             continue
-        # print(f"{start_pivot} -> {end_pivot}")
         yield (start_pivot, end_pivot)
 
 
@@ -102,9 +96,7 @@ def part_two() -> int:
     """https://adventofcode.com/2022/day/15#part2"""
     y = 3204480
     sensors, beacons = zip(*list(read_input_file()))
-    # for y in range(y, y + 1):
     for y in range(0, LIMIT + 1):
-        # for y in range(3204480 - 1, LIMIT + 1):
         d = 0
         tmp = []
         for start_pivot, end_pivot in find_segments_on_y_axis(y, sensors, beacons):
@@ -125,8 +117,6 @@ def part_two() -> int:
 
 
 if __name__ == "__main__":
-    # print(part_one())
-    # 13784551204480
+    print(part_one())
     print(part_two())
     # 13784551204480
-    # python 15/lol.py  < 15/input.txt

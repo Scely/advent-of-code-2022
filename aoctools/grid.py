@@ -76,8 +76,19 @@ class Coordinates:
     def __str__(self) -> str:
         return f"[{self.x};{self.y}]"
 
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Coordinates):
+            return False
+        return self.x == other.x and self.y == other.y
+
     def __repr__(self) -> str:
         return self.__str__()
 
     def __hash__(self):
         return hash((self.x, self.y))
+
+    def __lt__(self, other):
+        return self.x < other.x or (self.x == other.x and self.y < other.y)
+
+    def __le__(self, other):
+        return self.x < other.x or (self.x == other.x and self.y <= other.y)
