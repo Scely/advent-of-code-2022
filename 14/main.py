@@ -1,8 +1,7 @@
 INPUT_FILE = "14/input.txt"
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from functools import reduce
 from typing import Iterator
 from aoctools.grid import Coordinates
 
